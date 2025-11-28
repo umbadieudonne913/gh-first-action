@@ -11,3 +11,5 @@ jobs:
         run: echo "Hello World!"
       - name: Print goodbye
         run: echo "Done - Bye"
+      - name: Show current date
+        run: date
