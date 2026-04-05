@@ -5,13 +5,11 @@ on:
     branches: [ main, develop ]
   pull_request:
     branches: [ main ]
-  workflow_dispatch:  # Permet de lancer manuellement
+  workflow_dispatch:
 
 jobs:
   quality-gate:
     runs-on: ubuntu-latest
-    # Pour les tests locaux, utilise self-hosted:
-    # runs-on: self-hosted
     
     steps:
       - name: Checkout code
@@ -27,23 +25,25 @@ jobs:
         uses: SonarSource/sonarqube-scan-action@v4
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          SONAR_HOST_URL: "https://chatty-carrots-train.loca.lt"
         with:
           args: >
             -Dsonar.projectKey=${{ github.event.repository.name }}
             -Dsonar.projectName=${{ github.event.repository.name }}
             -Dsonar.projectVersion=${{ github.run_number }}
+            -Dsonar.host.url=https://chatty-carrots-train.loca.lt
 
       - name: Wait for SonarQube processing
-        run: sleep 10
+        run: sleep 15
 
       - name: Framework Decision
         env:
-          FRAMEWORK_URL: ${{ secrets.FRAMEWORK_URL }}
           PROJECT_KEY: ${{ github.event.repository.name }}
           PIPELINE_NAME: ${{ github.run_id }}
         run: |
           echo "🔹 Appel de l'API pour la décision du Framework..."
+          
+          FRAMEWORK_URL="https://puny-teams-hear.loca.lt"
           
           RESPONSE=$(curl -s "${FRAMEWORK_URL}/evaluation/decide/sonar/${PROJECT_KEY}/${PIPELINE_NAME}")
           
@@ -59,10 +59,9 @@ jobs:
       - name: Build
         run: |
           echo "🔹 Build en cours..."
-          # Ajoute ici tes commandes de build
+          # Ajoute tes commandes de build ici
           # mvn clean install
-          # npm run build
-          # etc.
+          # npm install && npm run build
 
       - name: Deploy
         if: success()
