@@ -1,49 +1,61 @@
-name: Test Framework Only
+name: CI Pipeline avec Framework DevSecOps
 
 on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
-  test-framework:
+  quality-gate:
     runs-on: ubuntu-latest
     
     steps:
-      - name: Test Framework Decision
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v4
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: "https://chatty-carrots-train.loca.lt"
+        with:
+          args: >
+            -Dsonar.projectKey=${{ github.event.repository.name }}
+            -Dsonar.projectName=${{ github.event.repository.name }}
+            -Dsonar.projectVersion=${{ github.run_number }}
+            -Dsonar.host.url=https://chatty-carrots-train.loca.lt
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+
+      - name: Wait for SonarQube processing
+        run: sleep 15
+
+      - name: Framework Decision
+        env:
+          FRAMEWORK_URL: "https://puny-teams-hear.loca.lt"
+          PROJECT_KEY: ${{ github.event.repository.name }}
+          PIPELINE_NAME: ${{ github.run_id }}
         run: |
-          echo "🔹 Test de l'API Framework..."
+          echo "🔹 Appel de l'API pour la décision du Framework..."
           
-          FRAMEWORK_URL="https://puny-teams-hear.loca.lt"
+          RESPONSE=$(curl -s "${FRAMEWORK_URL}/evaluation/decide/sonar/${PROJECT_KEY}/${PIPELINE_NAME}")
           
-          # Tester la connexion
-          echo "1. Test de connexion au Framework..."
-          curl -s "${FRAMEWORK_URL}/evaluation/config" || echo "Framework non accessible"
+          echo "Framework response: ${RESPONSE}"
           
-          # Tester une décision
-          echo ""
-          echo "2. Test de l'API de décision..."
-          
-          RESPONSE=$(curl -s -X POST "${FRAMEWORK_URL}/evaluation/decide" \
-            -H "Content-Type: application/json" \
-            -d '{
-              "pipeline_type": "github",
-              "pipeline_name": "test-action",
-              "project_name": "gh-first-action",
-              "metrics": {
-                "quality_gate": "PASSED",
-                "bugs": 0,
-                "vulnerabilities": 0,
-                "code_smells": 17,
-                "security_hotspots": 0,
-                "coverage": 0,
-                "duplications": 0
-              }
-            }')
-          
-          echo "Response: ${RESPONSE}"
-          
-          if echo "$RESPONSE" | grep -q '"decision":"REJECTED"'; then
-            echo "❌ Décision: REJETÉ"
+          if echo "$RESPONSE" | grep -q '"decision":"FAIL"'; then
+            echo "❌ Pipeline bloqué par le Framework DevSecOps"
             exit 1
           else
-            echo "✅ Décision: APPROUVÉ"
+            echo "✅ Pipeline autorisé par le Framework"
           fi
+
+      - name: Build
+        run: |
+          echo "🔹 Build en cours..."
