@@ -22,28 +22,33 @@ jobs:
           distribution: 'temurin'
 
       - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v4
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: "https://chatty-carrots-train.loca.lt"
-        with:
-          args: >
-            -Dsonar.projectKey=${{ github.event.repository.name }}
-            -Dsonar.projectName=${{ github.event.repository.name }}
-            -Dsonar.projectVersion=${{ github.run_number }}
-            -Dsonar.host.url=https://chatty-carrots-train.loca.lt
-            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+        run: |
+          # Télécharger sonar-scanner manuellement
+          wget -q https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-6.2.1.4610-linux-x64.zip
+          unzip -q sonar-scanner-cli-6.2.1.4610-linux-x64.zip
+          export PATH=$PWD/sonar-scanner-6.2.1.4610-linux-x64/bin:$PATH
+          
+          # Exécuter le scan
+          sonar-scanner \
+            -Dsonar.projectKey=${{ github.event.repository.name }} \
+            -Dsonar.projectName=${{ github.event.repository.name }} \
+            -Dsonar.projectVersion=${{ github.run_number }} \
+            -Dsonar.host.url=https://chatty-carrots-train.loca.lt \
+            -Dsonar.login=$SONAR_TOKEN
 
       - name: Wait for SonarQube processing
         run: sleep 15
 
       - name: Framework Decision
-        env:
-          FRAMEWORK_URL: "https://puny-teams-hear.loca.lt"
-          PROJECT_KEY: ${{ github.event.repository.name }}
-          PIPELINE_NAME: ${{ github.run_id }}
         run: |
           echo "🔹 Appel de l'API pour la décision du Framework..."
+          
+          FRAMEWORK_URL="https://puny-teams-hear.loca.lt"
+          PROJECT_KEY="${{ github.event.repository.name }}"
+          PIPELINE_NAME="${{ github.run_id }}"
           
           RESPONSE=$(curl -s "${FRAMEWORK_URL}/evaluation/decide/sonar/${PROJECT_KEY}/${PIPELINE_NAME}")
           
