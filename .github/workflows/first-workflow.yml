@@ -24,7 +24,7 @@ jobs:
       - name: SonarQube Scan
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: "https://chatty-carrots-train.loca.lt"
+          SONAR_HOST_URL: "https://sonar-stable.loca.lt"
         run: |
           # Télécharger sonar-scanner manuellement
           wget -q https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-6.2.1.4610-linux-x64.zip
@@ -46,7 +46,7 @@ jobs:
         run: |
           echo "🔹 Appel de l'API pour la décision du Framework..."
           
-          FRAMEWORK_URL="https://puny-teams-hear.loca.lt"
+          FRAMEWORK_URL="https://framework-stable.loca.lt"
           PROJECT_KEY="${{ github.event.repository.name }}"
           PIPELINE_NAME="${{ github.run_id }}"
           
