@@ -15,33 +15,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-
-      - name: SonarQube Scan
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: "https://sonar-stable.loca.lt"
-        run: |
-          # Télécharger sonar-scanner manuellement
-          wget -q https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-6.2.1.4610-linux-x64.zip
-          unzip -q sonar-scanner-cli-6.2.1.4610-linux-x64.zip
-          export PATH=$PWD/sonar-scanner-6.2.1.4610-linux-x64/bin:$PATH
-          
-          # Exécuter le scan
-          sonar-scanner \
-            -Dsonar.projectKey=${{ github.event.repository.name }} \
-            -Dsonar.projectName=${{ github.event.repository.name }} \
-            -Dsonar.projectVersion=${{ github.run_number }} \
-            -Dsonar.host.url=https://chatty-carrots-train.loca.lt \
-            -Dsonar.login=$SONAR_TOKEN
-
-      - name: Wait for SonarQube processing
-        run: sleep 15
-
       - name: Framework Decision
         run: |
           echo "🔹 Appel de l'API pour la décision du Framework..."
