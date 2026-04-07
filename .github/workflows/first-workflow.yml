@@ -44,7 +44,7 @@ jobs:
             echo "❌ Pipeline bloqué par le Framework DevSecOps"
             exit 1
           else
-            echo "✅ Pipeline autorisé par le Framework"
+            echo "✅  Pipeline autorisé par le Framework"
           fi
 
       - name: Build
