@@ -15,39 +15,72 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v4
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: "https://sonar-stable.loca.lt"
+        with:
+          args: >
+            -Dsonar.projectKey=${{ github.event.repository.name }}
+            -Dsonar.projectName=${{ github.event.repository.name }}
+            -Dsonar.projectVersion=${{ github.run_number }}
+            -Dsonar.sources=.
+
+      - name: Wait for SonarQube processing
+        run: sleep 15
+
       - name: Framework Decision
+        env:
+          FRAMEWORK_URL: "https://framework-stable.loca.lt"
+          PROJECT_KEY: ${{ github.event.repository.name }}
+          PIPELINE_NAME: ${{ github.run_id }}
         run: |
-          echo "🔹 Appel de l'API pour la décision du Framework..."
+          echo "=========================================="
+          echo "🔹 Appel du Framework pour la décision"
+          echo "=========================================="
+          echo "Framework URL: ${FRAMEWORK_URL}"
+          echo "Projet: ${PROJECT_KEY}"
+          echo "Pipeline: ${PIPELINE_NAME}"
+          echo ""
           
-          FRAMEWORK_URL="https://framework-stable.loca.lt"
+          # Appel au framework pour obtenir la décision
+          RESPONSE=$(curl -s "${FRAMEWORK_URL}/evaluation/decide/sonar/${PROJECT_KEY}/${PIPELINE_NAME}")
           
-          RESPONSE=$(curl -s -X POST "${FRAMEWORK_URL}/evaluation/decide" \
-            -H "Content-Type: application/json" \
-            -d '{
-              "pipeline_type": "github",
-              "pipeline_name": "${{ github.run_id }}",
-              "project_name": "${{ github.event.repository.name }}",
-              "metrics": {
-                "quality_gate": "PASSED",
-                "bugs": 0,
-                "vulnerabilities": 0,
-                "code_smells": 17,
-                "security_hotspots": 0,
-                "coverage": 75,
-                "duplications": 3
-              }
-            }')
+          echo "Réponse du Framework:"
+          echo "${RESPONSE}" | python3 -m json.tool 2>/dev/null || echo "${RESPONSE}"
+          echo ""
           
-          echo "Framework response: ${RESPONSE}"
-          
-          if echo "$RESPONSE" | grep -q '"decision":"REJECTED"'; then
-            echo "❌  Pipeline bloqué par le Framework DevSecOps"
+          # Vérifier la décision
+          if echo "$RESPONSE" | grep -q '"decision":"FAIL"'; then
+            echo "❌ DÉCISION: PIPELINE REJETÉ par le Framework DevSecOps"
             exit 1
           else
-            echo "✅  Pipeline autorisé par le Framework"
+            echo "✅ DÉCISION: PIPELINE APPROUVÉ par le Framework DevSecOps"
           fi
 
       - name: Build
         run: |
+          echo "=========================================="
           echo "🔹 Build en cours..."
-          echo "🚀 Build terminé avec succès!"
+          echo "=========================================="
+          # Ajoute ici tes commandes de build
+          # mvn clean install
+          # npm install && npm run build
+          # docker build -t mon-app .
+          echo "✅ Build terminé avec succès!"
+
+      - name: Deploy
+        if: success()
+        run: |
+          echo "=========================================="
+          echo "🔹 Déploiement en cours..."
+          echo "=========================================="
+          # Ajoute ici tes commandes de déploiement
+          echo "✅ Application déployée avec succès!"
