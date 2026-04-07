@@ -25,7 +25,7 @@ jobs:
         uses: SonarSource/sonarqube-scan-action@v4
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: "https://sonar-stable.loca.lt"
+          SONAR_HOST_URL: "https://prepared-legacy-pope-enhancing.trycloudflare.com"
         with:
           args: >
             -Dsonar.projectKey=${{ github.event.repository.name }}
@@ -38,7 +38,7 @@ jobs:
 
       - name: Framework Decision
         env:
-          FRAMEWORK_URL: "https://framework-stable.loca.lt"
+          FRAMEWORK_URL: "https://median-supplemental-indicates-evident.trycloudflare.com"
           PROJECT_KEY: ${{ github.event.repository.name }}
           PIPELINE_NAME: ${{ github.run_id }}
         run: |
@@ -70,10 +70,6 @@ jobs:
           echo "=========================================="
           echo "🔹 Build en cours..."
           echo "=========================================="
-          # Ajoute ici tes commandes de build
-          # mvn clean install
-          # npm install && npm run build
-          # docker build -t mon-app .
           echo "✅ Build terminé avec succès!"
 
       - name: Deploy
@@ -82,5 +78,4 @@ jobs:
           echo "=========================================="
           echo "🔹 Déploiement en cours..."
           echo "=========================================="
-          # Ajoute ici tes commandes de déploiement
           echo "✅ Application déployée avec succès!"
