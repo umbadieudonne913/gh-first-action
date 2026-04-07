@@ -41,7 +41,7 @@ jobs:
           echo "Framework response: ${RESPONSE}"
           
           if echo "$RESPONSE" | grep -q '"decision":"REJECTED"'; then
-            echo "❌ Pipeline bloqué par le Framework DevSecOps"
+            echo "❌  Pipeline bloqué par le Framework DevSecOps"
             exit 1
           else
             echo "✅  Pipeline autorisé par le Framework"
